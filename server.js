@@ -2,12 +2,18 @@ const express = require("express");
 const path = require('path');
 const fs = require('fs');
 const app = express();
+
+// requiring cors library
+const cors = require('cors');
+
 app.use(express.json());
 app.set("port", 3000);
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   next();
 });
+
+app.use(cors());
 
 const MongoClient = require("mongodb").MongoClient;
 let db;
@@ -43,7 +49,7 @@ app.get('/collection/:collectionName',(req,res,next)=>{
 app.post('/collection/:collectionName',(req,res,next)=>{
     req.collection.insertOne(req.body,(e,results)=>{
         if(e) return next(e)
-        res.send(results.ops);
+        res.send(results);
     })
 })
 
@@ -57,7 +63,7 @@ app.get('/collection/:collectionName/:id',(req,res,next)=>{
 
 //UPDATE/PUT 
 app.put ('/collection/:collectionName/:id',(req,res,next)=>{
-    req.collection.update(
+    req.collection.updateOne(
        { _id: new ObjectID (req.params.id)},
        {$set: req.body},
        {safe: true, multi: false},

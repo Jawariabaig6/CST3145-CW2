@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Lessons</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Fight me -->
+    <div id="app">
+        <header>
+            <h1 v-text="sitename"></h1>
+            <!-- Search feild added -->
+            <input type="search" placeholder="SearchCourse" v-model="SearchCourse" v-on:keyup="showSearch">
+            <button v-on:click="showCheckout">
+                {{cartItemCount}}
+                <span class="fas fa-cart-plus"></span> CheckOut
+            </button>
+
+            <!-- adding radio button -->
+            <div>
+                <input type="radio" id="html" name="order" value="ascending" v-model="order" v-bind:value="'ascending'"
+                    checked>
+                <label for="ascending">Ascending</label><br>
+                <input type="radio" id="html" name="order" value="descending" v-model="order"
+                    v-bind:value="'descending'">
+                <label for="descending">Descending</label><br>
+
+            </div>
+            <hr>
+            <div>
+                <input type="radio" id="html" name="sort" value="subject" v-model="sort" v-bind:value="'subject'"
+                    checked>
+                <label for="subject">Subject</label><br>
+                <input type="radio" id="html" name="sort" value="location" v-model="sort" v-bind:value="'location'">
+                <label for="location">Location</label><br>
+                <input type="radio" id="html" name="sort" value="price" v-model="sort" v-bind:value="'price'">
+                <label for="price">Price</label><br>
+                <input type="radio" id="html" name="sort" value="space" v-model="sort" v-bind:value="'space'">
+                <label for="space">Available Spaces</label><br>
+            </div>
+        </header>
+        <main>
+            <div v-if="checkSearchBar">
+                <div v-for="(products, index) in ProductList" :key="index">
+                    <!-- classes information  -->
+                    <fieldset>
+                        <img v-bind:src="products.Image" alt="" height="100px" width="200px" />
+                        <h2 v-text="products.subject"></h2>
+                        <p v-text="products.location"></p>
+                        <p>Price: {{ products.Price }}</p>
+                        <p>Space:{{ products.space }}</p>
+                        <!-- add to cart button  -->
+                        <button v-on:click="addToCart(products)" v-if="canAddToCart(products)">
+                            Add to cart
+                            <i class="fas fa-shopping-cart"></i>
+
+                        </button>
+                        <button disabled="disabled" v-else>Add to cart</button>
+                    </fieldset>
+                </div>
+            </div>
+            <div v-else>
+                <div v-if="ShowProduct">
+                    <div v-for="product in Sort">
+
+                        <!-- classes information  -->
+
+                        <fieldset>
+                            <img v-bind:src="product.Image" alt="" height="100px" width="200px" />
+                            <h2 v-text="product.subject"></h2>
+                            <p v-text="product.location"></p>
+                            <p>Price: {{ product.Price }}</p>
+                            <p>Space:{{ product.space }}</p>
+                            <!-- add to cart button  -->
+
+                            <button v-on:click="addToCart(product)" v-if="canAddToCart(product)">
+                                Add to cart
+                                <i class="fas fa-shopping-cart"></i>
+
+                            </button>
+                            <button disabled="disabled" v-else>Add to cart</button>
+                        </fieldset>
+                    </div>
+                </div>
+                <div v-else class="checkout">
+                    <h2>CheckOut Page</h2>
+                    <div v-for="product in cart">
+
+                        <!-- classes information  -->
+
+                        <fieldset>
+                            <img v-bind:src="product.Image" alt="" height="100px" width="200px" />
+                            <h2 v-text="product.subject"></h2>
+                            <p v-text="product.location"></p>
+                            <p>Price: {{ product.Price }}</p>
+
+                            <!-- add to cart button  -->
+                            <button v-on:click="remove(product.id)">
+                                Remove
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </fieldset>
+                    </div>
+                    <p>
+                        <strong>Name: </strong>
+                        <input v-model.trim="name" />
+                    </p>
+                    <p>
+                        <strong>Phone: </strong>
+                        <input v-model="phone" type="number" />
+                    </p>
+                    <p>
+                        <!-- CheckOut -->
+                        <button v-on:click="SubmitForm" v-if="/^(?!\s*$)[a-zA-Z.+\s'-]+$/.test(this.name) &&
+                             /^(?!\s*$)[0-9.+\s'-]+$/.test(this.phone) && this.phone.length === 10">Place
+                            Order
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                        <button v-on:click="SubmitForm" disabled v-else>Place Order
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="text/javascript">
+        var webstore = new Vue({
+            el: "#app",
+            data: {
+                sitename: "After School Courses",
+                products: [],
+                cart: [], // array to store items in cart
+                SearchCourse: '',
+                searchInput: "",
+                checkSearchBar: false,
+                ShowProduct: true,
+                name: "",
+                phone: "",
+                order: "ascending",
+                sort: "subject"
+            },
+            // Methods start
+            methods: {
+                SubmitForm() {
+                    let uniqueArrayId = [
+                        ...new Map(this.cart.map((item) => [item["_id"], item])).values(),
+                    ];
+
+                    let store_array = [];
+
+                    uniqueArrayId.forEach((item) => {
+                        let temp_lesson_object = {
+                            id: item._id,
+                            name: item.subject,
+                            spaces_ordered: 10 - item.space
+                        }
+
+                        store_array.push(temp_lesson_object);
+                    })
+
+                    let order_object = {
+                        name: this.name,
+                        phone: this.phone,
+                        ordered_lessons: store_array
+                    }
+
+                    fetch("http://localhost:5000/collection/order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(order_object)
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            // do something with the response data from the POST request
+                            console.log({ "Success": data });
+                        });
+
+                        store_array.forEach((item) => {
+                            fetch("http://localhost:5000/collection/lessons/" + item['id'], {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({space: 10 - item['spaces_ordered']})
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                // do something with the response data from the PUT request
+                                console.log({ "Success": data });
+                            });
+                        })
+                },
+
+                // PUT: Loop through your cart array and subtract the space from 10 and store it in a variable
+                // pass this VARIABLE in the body of the PUT request
+                /*
+                fetch("http://localhost:3000/lessons/" + obj['lesson_id'], {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ space: VARIABLE })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        // do something with the response data from the PUT request
+                        console.log({ "Success": data });
+
+                        this.cart = [];
+                });
+                */
+
+                addToCart: function () {
+                    if (this.products.spaces > 0) {
+                        this.products.spaces -= 1; // confirm there are enough space left in class
+                        this.cart.push(this.product.id);
+                    }
+                },
+                addToCart(product) {
+                    this.cart.push(product);
+                    product.space--;
+                    console.log(this.cart);
+                },
+
+
+                showCheckout() {
+                    this.ShowProduct = this.ShowProduct ? false : true;
+                },
+                showSearch() {
+                    this.checkSearchBar = true;
+                },
+                canAddToCart(product) {
+                    return product.space > this.cartCount(product.id);
+                },
+                cartCount(id) {
+                    let count = 0;
+                    for (let i = 0; i < this.cart.length; i++) {
+                        if (this.cart[i] === id) {
+                            count++;
+                        }
+                    }
+                    return count;
+                },
+                // Remove funtion
+                remove(id) {
+                    let index;
+                    for (let i = 0; i < this.cart.length; i++) {
+                        if (this.cart[i]["id"] === id) {
+                            index = i;
+                        }
+                    }
+                    this.cart.splice(index, 1);
+
+                    for (let i = 0; i < this.products.length; i++) {
+                        if (this.products[i]["id"] === id) {
+
+                            this.products[i].space = this.products[i].space + 1
+                        }
+                    }
+
+                },
+                // computed methods 
+            },
+            computed:
+            {
+                cartItemCount: function () {
+                    return this.cart.length;
+                },
+                // Search fuction
+                ProductList() {
+
+                    this.checkSearchBar = true
+                    if (this.SearchCourse.trim().length > 0) {
+                        return this.products.filter((products) => products.subject.toLowerCase().includes(this.SearchCourse.trim().toLowerCase()) || products.location.toLowerCase().includes(this.SearchCourse.trim().toLowerCase()))
+                    } else {
+
+                        this.checkSearchBar = false
+                        this.ShowProduct = true
+                    }
+                    return this.products
+                },
+                Sort() {
+
+
+                    console.log("Hi")
+                    let arr = this.products.slice(0);
+                    console.log(arr)
+
+                    if (this.sort === 'subject') {
+
+                        if (this.order === 'ascending') {
+
+                            function compare(a, b) {
+                                if (a.subject > b.subject)
+                                    return 1;
+                                if (a.subject < b.subject)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        } else if (this.order === 'descending') {
+
+                            function compare(a, b) {
+                                if (a.subject < b.subject)
+                                    return 1;
+                                if (a.subject > b.subject)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        }
+
+                    }
+
+
+                    if (this.sort === 'location') {
+
+                        if (this.order === 'ascending') {
+
+                            function compare(a, b) {
+                                if (a.location > b.location)
+                                    return 1;
+                                if (a.location < b.location)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        } else if (this.order === 'descending') {
+
+                            function compare(a, b) {
+                                if (a.location < b.location)
+                                    return 1;
+                                if (a.location > b.location)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        }
+
+                    }
+                    if (this.sort === 'price') {
+
+                        if (this.order === 'ascending') {
+
+                            function compare(a, b) {
+                                if (a.Price > b.Price)
+                                    return 1;
+                                if (a.Price < b.Price)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        } else if (this.order === 'descending') {
+
+                            function compare(a, b) {
+                                if (a.Price < b.Price)
+                                    return 1;
+                                if (a.Price > b.Price)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        }
+
+                    }
+                    if (this.sort === 'space') {
+
+                        if (this.order === 'ascending') {
+
+                            function compare(a, b) {
+                                if (a.space > b.space)
+                                    return 1;
+                                if (a.space < b.space)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        } else if (this.order === 'descending') {
+
+                            function compare(a, b) {
+                                if (a.space < b.space)
+                                    return 1;
+                                if (a.space > b.space)
+                                    return -1;
+                                return 0;
+                            }
+                            return arr.sort(compare);
+
+                        }
+
+                    }
+                    console.log(arr)
+
+
+
+                }
+
+            },
+            created: function () {
+                fetch('http://localhost:5000/collection/lessons').then(
+                    function (response) {
+                        response.json().then(
+                            function (json) {
+                                webstore.products = json;
+                                console.log(json);
+                            }
+                        );
+                    }
+                )
+            }
+        },
+        );
+
+    </script>
+</body>
+
+</html>
