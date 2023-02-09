@@ -74,6 +74,20 @@ app.put ('/collection/:collectionName/:id',(req,res,next)=>{
     )
 })
 
+//search from database 
+
+app.get('/:collectionName/:search', (req, res, next) => {
+  req.collection.find({}).toArray((e, results) => {
+      if (e) return next(e);
+      let search_object = results.filter((lesson) => {
+          return (
+              lesson.subject.toLowerCase().match(req.params.search.toLowerCase()) || lesson.location.toLowerCase().match(req.params.search.toLowerCase())
+          );
+      });
+      res.send(search_object);
+  });
+});
+
 // static image file middleware
 app.use(function (req, res, next) {
   let filePath = path.join(__dirname, "static", req.url);
@@ -90,12 +104,11 @@ app.use(function (req, res, next) {
       }
   });
 });
+//Logger 
 
 // handling error from the previous middleware
 app.use(function (req, res) {
-  // Sets the status code to 404
   res.status(404);
-  // Sends the error "File not found!”
   res.send("File not found!");
 });
 
