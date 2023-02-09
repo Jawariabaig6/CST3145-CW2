@@ -184,6 +184,7 @@
                             // do something with the response data from the POST request
                             console.log({ "Success": data });
                         });
+                        // PUT start here 
 
                     store_array.forEach((item) => {
                         fetch("http://localhost:5000/collection/lessons/" + item['id'], {
