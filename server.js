@@ -12,7 +12,7 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   next();
 });
-
+//using cors library 
 app.use(cors());
 
 const MongoClient = require("mongodb").MongoClient;
