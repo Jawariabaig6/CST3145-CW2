@@ -136,6 +136,7 @@
                 sitename: "After School Courses",
                 products: [],
                 cart: [], // array to store items in cart
+                temp_lesson_array: [],//temporay arry for lesson 
                 SearchCourse: '',
                 searchInput: "",
                 checkSearchBar: false,
@@ -152,17 +153,20 @@
                         ...new Map(this.cart.map((item) => [item["_id"], item])).values(),
                     ];
 
-                    let store_array = [];
+             //Updating the number of spaces 
 
+                    let store_array = [];
                     uniqueArrayId.forEach((item) => {
                         let temp_lesson_object = {
                             id: item._id,
                             name: item.subject,
                             spaces_ordered: 10 - item.space
                         }
+                    
 
                         store_array.push(temp_lesson_object);
                     })
+                    //storing the required object 
 
                     let order_object = {
                         name: this.name,
@@ -181,37 +185,19 @@
                             console.log({ "Success": data });
                         });
 
-                        store_array.forEach((item) => {
-                            fetch("http://localhost:5000/collection/lessons/" + item['id'], {
+                    store_array.forEach((item) => {
+                        fetch("http://localhost:5000/collection/lessons/" + item['id'], {
                             method: "PUT",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({space: 10 - item['spaces_ordered']})
+                            body: JSON.stringify({ space: 10 - item['spaces_ordered'] })
                         })
                             .then(res => res.json())
                             .then(data => {
                                 // do something with the response data from the PUT request
                                 console.log({ "Success": data });
                             });
-                        })
-                },
-
-                // PUT: Loop through your cart array and subtract the space from 10 and store it in a variable
-                // pass this VARIABLE in the body of the PUT request
-                /*
-                fetch("http://localhost:3000/lessons/" + obj['lesson_id'], {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ space: VARIABLE })
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                        // do something with the response data from the PUT request
-                        console.log({ "Success": data });
-
-                        this.cart = [];
-                });
-                */
-
+                },
                 addToCart: function () {
                     if (this.products.spaces > 0) {
                         this.products.spaces -= 1; // confirm there are enough space left in class
@@ -223,8 +209,6 @@
                     product.space--;
                     console.log(this.cart);
                 },
-
-
                 showCheckout() {
                     this.ShowProduct = this.ShowProduct ? false : true;
                 },
@@ -273,13 +257,25 @@
 
                     this.checkSearchBar = true
                     if (this.SearchCourse.trim().length > 0) {
-                        return this.products.filter((products) => products.subject.toLowerCase().includes(this.SearchCourse.trim().toLowerCase()) || products.location.toLowerCase().includes(this.SearchCourse.trim().toLowerCase()))
-                    } else {
+                        // return this.products.filter((products) => products.subject.toLowerCase().includes(this.SearchCourse.trim().toLowerCase()) || products.location.toLowerCase().includes(this.SearchCourse.trim().toLowerCase()))
+                        fetch('http://localhost:5000/lessons/' + this.SearchCourse.toLowerCase()).then(
+                            function (response) {
+                                response.json().then(
+                                    function (json) {
+                                        webstore.temp_lesson_array = json;
+                                        console.log(json);
+                                    }
+                                );
+                            }
+                        );
 
+                        return this.temp_lesson_array;
+                    } else {
                         this.checkSearchBar = false
                         this.ShowProduct = true
+                        return this.products;
                     }
-                    return this.products
+
                 },
                 Sort() {
 
