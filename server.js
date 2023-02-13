@@ -45,7 +45,7 @@ app.get('/collection/:collectionName',(req,res,next)=>{
         res.send(results);
     })
 })
-
+//POST ROUTE 
 app.post('/collection/:collectionName',(req,res,next)=>{
     req.collection.insertOne(req.body,(e,results)=>{
         if(e) return next(e)
