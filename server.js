@@ -52,7 +52,7 @@ app.post('/collection/:collectionName',(req,res,next)=>{
         res.send(results);
     })
 })
-
+//using findOne merhod for retreving the object from the lessons 
 const ObjectID = require ('mongodb').ObjectId;
 app.get('/collection/:collectionName/:id',(req,res,next)=>{
     req.collection.findOne({_id :new ObjectID(req.params.id)},(e, result)=>{
