@@ -90,7 +90,7 @@ app.get('/:collectionName/:search', (req, res, next) => {
 
 // static image file middleware
 app.use(function (req, res, next) {
-  let filePath = path.join(__dirname, "static", req.url);
+  let filePath = path.join(__dirname, "images", req.url);
   fs.stat(filePath, function (err, fileInfo) {
       if (err) {
           next();
